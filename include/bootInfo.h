@@ -1,7 +1,7 @@
 #pragma once
 #include "commonTypes.h"
 #include "commonUtils.h"
-#include "commonUART.h"
+#include "printUtils.h"
 
 typedef struct BootInfo {
 	u64 dtb_phys;
@@ -15,24 +15,6 @@ static u64 cpu_id(u64 MPIDR) {
 }
 
 static inline void printBootInfo(const BootInfo* bi) {
-	char buff[24];
-	htos(bi->dtb_phys, buff);
-	uart_puts(buff);
-	memset(buff, 0, 24);
-	uart_putc('\n');
-
-	uitos(cpu_id(bi->MPIDR), buff);
-	uart_puts(buff);
-	memset(buff, 0, 24);
-	uart_putc('\n');
-
-	htos(bi->ram_base, buff);
-	uart_puts(buff);
-	memset(buff, 0, 24);
-	uart_putc('\n');
-
-	uitos(bi->ram_size, buff);
-	uart_puts(buff);
-	memset(buff, 0, 24);
-	uart_putc('\n');
+	kprintf("dtb_phys: 0x%x\nMPIDR: %llu\nram_base: 0x%x\nram_size: %llu\n", bi->dtb_phys, bi->MPIDR, bi->ram_base, bi->ram_size);
+	kprintf("cpu_id: %d\n", cpu_id(bi->MPIDR));
 }

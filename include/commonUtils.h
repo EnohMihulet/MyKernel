@@ -1,4 +1,5 @@
 #pragma once
+#include <stdarg.h>
 #include "commonTypes.h"
 
 static const char* HEX_STRING = "0123456789ABCDEF";
@@ -33,75 +34,18 @@ static inline u8 strncmp(char* str1, char* str2, u64 n) {
 	return -1;
 }
 
-static inline void reverse(char* str, u16 len) {
-	u16 start = 0;
-	u16 end = len - 1;
-	while (start < end) {
-		char temp = str[start];
-		str[start++] = str[end];
-		str[end--] = temp;
-	}
+static inline bool isdigit(char c) {
+	return (c >= '0' && c <= '9');
 }
 
-static inline void sitos(s64 num, char* str) {
-	u16 i = 0;
-	u8 isNeg = 0;
+void reverse(char* str, u16 len);
 
-	if (num == 0) {
-		str[0] = '0';
-		str[1] = '\0';
-		return;
-	}
+void sint_to_s(s32 num, char* str);
+void uint_to_s(u32 num, char* str);
 
-	if (num < 0) {
-		isNeg = 1;
-		num = -num;
-	}
+void sll_to_s(s64 num, char* str);
+void ull_to_s(u64 num, char* str);
 
-	while (num != 0) {
-		u8 r = num % 10;
-		num /= 10;
-		str[i++] = r + '0';
-	}
+void uint_to_hexs(u32 hex, char* str);
+void ull_to_hexs(u64 hex, char* str);
 
-	if (isNeg) str[i++] = '-';
-
-	str[i] = '\0';
-
-	reverse(str, i);
-}
-
-static inline void uitos(u64 num, char* str) {
-	u16 i = 0;
-
-	if (num == 0) {
-		str[0] = '0';
-		str[1] = '\0';
-		return;
-	}
-
-	while (num != 0) {
-		u8 r = num % 10;
-		num /= 10;
-		str[i++] = r + '0';
-	}
-
-	str[i] = '\0';
-
-	reverse(str, i);
-}
-
-static inline void htos(u64 hex, char* str) {
-	for (u8 i = 0; i < 16; i++) {
-		u8 r = hex % 16;
-		hex /= 16;
-		str[i] = HEX_STRING[r];
-	}
-	str[16] = 'x';
-	str[17] = '0';
-
-
-	str[18] = '\0';
-
-	reverse(str, 18);
-}

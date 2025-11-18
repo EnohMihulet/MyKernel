@@ -1,5 +1,7 @@
 #pragma once
+#include <stdarg.h>
 #include "commonTypes.h"
+#include "commonUtils.h"
 
 #define UART0_BASE 0x09000000u
 

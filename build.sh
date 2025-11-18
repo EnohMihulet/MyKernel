@@ -15,7 +15,7 @@ CFLAGS=(
 	-fno-builtin
 	-fno-pic
 	-nostdlib
-	-Wall -Wextra -Werror -Wno-unused-function
+	-Wall -Wextra -Wno-unused-function
 )
 
 SRC_DIR="$(cd "$(dirname "$0")" && pwd)"

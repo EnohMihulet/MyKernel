@@ -1,13 +1,16 @@
 	.section .text._start, "ax"
+	.align 7
 	.global _start
+	.extern gicInit
+	.extern timerInit1hz
+	.extern enableIRQ
 	.extern kernelMain
 	.extern __bss_start
 	.extern __bss_end
 	.extern __stack_top
-	.extern __vector_table_el1
 
 _start:
-	msr	daifset, #0b1111
+	msr	daifset, #0b1111 // Mask IRQ/FIQ/SError/Debug
 
 	mrs	x0, CurrentEL
 	lsr	x0, x0, #2
@@ -26,19 +29,15 @@ zeroBSS:
 	mov	x4, xzr
 zeroBSSLoop:
 	cmp	x2, x3
-	bhs	setUpExceptionVectors
+	bhs	1f
 	str	x4, [x2], #8
 	b	zeroBSSLoop
 
-setUpExceptionVectors:
-	ldr	x5, =__vector_table_el1
-	msr	VBAR_EL1, x5
+1:
+	mrs	x6, CPACR_EL1
+	orr 	x6, x6, #(0b11 << 20)
+	msr	CPACR_EL1, x6
 	isb
-
-//	msr	x6, CPACR_EL1
-//	orr 	x6, x6, #(0b11 << 20)
-//	msr	CPACR_EL1, x6
-//	isb
 
 	sub	sp, sp, #32
 	mov	x7, #0x40000000
@@ -54,6 +53,8 @@ setUpExceptionVectors:
 	str	x10, [sp, #24]
 
 	mov	x0, sp
+
+	bl 	xzr
 	
 	bl	kernelMain
 
@@ -62,24 +63,28 @@ halt:
 	b	halt
 
 EL2ToEL1:
-	mov	x1, #(1<<0) | (1<<1)
-	msr	CNTHCTL_EL2, 	x1
-	msr	CNTVOFF_EL2,	xzr
-
-	mov	x1, #0
-	msr	HCR_EL2, x1
-
-	ldr	x1, =__stack_top
-	msr	SP_EL1, x1
-
-	mov	x1, #(0b0101)
-	orr	x1, x1, #(0b1111<<6)
-	msr	SPSR_EL2, x1
-
-	adr	x1, setUpStack
-	msr	ELR_EL2, x1
-	eret
-
-1:	ret
+	mrs     x1, HCR_EL2
+	orr     x1, x1, #(1 << 31)
+	msr     HCR_EL2, x1
+	isb
 	
-
+	mrs     x1, CPTR_EL2
+	bic     x1, x1, #(1 << 10)
+	msr     CPTR_EL2, x1
+	isb
+	
+	mrs     x1, CNTHCTL_EL2
+	orr     x1, x1, #3
+	msr     CNTHCTL_EL2, x1
+	isb
+	
+	ldr     x1, =__stack_top
+	msr     SP_EL1, x1
+	
+	mov     x1, #0b0101
+	orr     x1, x1, #(0b1111 << 6)
+	msr     SPSR_EL2, x1
+	
+	adr     x1, setUpStack
+	msr     ELR_EL2, x1
+	eret
